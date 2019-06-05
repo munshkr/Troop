@@ -278,11 +278,16 @@ class ThreadSafeText(Text, OTClient):
 
             if message["src_id"] in self.peers:
 
-                self.root.reconnect_user(message['src_id'], message['name'])
+                peer = self.root.reconnect_user(
+                    message['src_id'], message['name'])
 
             else:
+                peer = self.root.add_new_user(
+                    message['src_id'], message['name'])
 
-                self.root.add_new_user(message['src_id'], message['name'])
+            # If peer is read-only, hide marker
+            if message['name'].startswith('__ro'):
+                peer.hide()
 
             print("Peer '{}' has joined the session".format(message['name']))
 
@@ -916,9 +921,9 @@ class ThreadSafeText(Text, OTClient):
         if followed_peer_name:
             # If we want to follow a specific peer, check if it is active and reset view
             followed_peer_id = next(
-                p.id for p in self.active_peers() if p.name.get() == followed_peer_name)
-            print("Following {} (id={})".format(
-                followed_peer_name, followed_peer_id))
+                iter(p.id for p in self.active_peers() if p.name.get() == followed_peer_name), None)
+            # print("Following {} (id={})".format(
+            #    followed_peer_name, followed_peer_id))
             if message["src_id"] == followed_peer_id:
                 self.reset_view(peer)
         else:

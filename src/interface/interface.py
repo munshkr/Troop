@@ -376,7 +376,12 @@ class Interface(BasicInterface):
 
         try:
 
-            self.text.marker = self.add_new_user(id_num, name)
+            local_peer = self.add_new_user(id_num, name)
+            self.text.marker = local_peer
+
+            # If local peer is read-only, hide marker
+            if name.startswith('__ro'):
+                local_peer.hide()
 
         except ValueError:
 
