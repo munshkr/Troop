@@ -1,11 +1,13 @@
+import re
 import sys
-import os, os.path
+import os
+import os.path
 
 VERSION = "0.9.5"
 
 # Check for location of Python
 
-if sys.argv[0] == sys.executable: # If this is compiled file, just use python
+if sys.argv[0] == sys.executable:  # If this is compiled file, just use python
 
     PYTHON_EXECUTABLE = "python"
 
@@ -46,6 +48,7 @@ def stdout(*args):
     """ Forces prints to server-side """
     sys.__stdout__.write(" ".join([str(s) for s in args]) + "\n")
 
+
 def readin(prompt="", default=None):
     other = " ({})".format(default) if default is not None else ""
     while True:
@@ -61,16 +64,17 @@ def readin(prompt="", default=None):
 
 # Absolute path of the root e.g. where run-client.py is found
 
+
 ROOT_DIR = os.path.join(os.path.dirname(__file__), "..")
 SRC_DIR = os.path.join(os.path.dirname(__file__))
 
 
 # Check for OS -> mac, linux, win
 
-SYSTEM  = 0
+SYSTEM = 0
 WINDOWS = 0
-LINUX   = 1
-MAC_OS  = 2
+LINUX = 1
+MAC_OS = 2
 
 if sys.platform.startswith('darwin'):
 
@@ -86,15 +90,14 @@ elif sys.platform.startswith('linux'):
 
 # RegEx and tags
 
-import re
 
 string_regex = re.compile(r"\".*?\"|'.*?'|\".*?$|'.*?$")
 
 tag_descriptions = {
-    "code"          : {"background": "Red", "foreground": "White"},
-    "tag_bold"      : {"font": "BoldFont"},
-    "tag_italic"    : {"font": "ItalicFont"}
-    }
+    "code": {"background": "Red", "foreground": "White"},
+    "tag_bold": {"font": "BoldFont"},
+    "tag_italic": {"font": "ItalicFont"}
+}
 
 
 # Public server
@@ -106,26 +109,27 @@ PUBLIC_SERVER_ADDRESS = PUBLIC_SERVER_ADDRESS_IPV4
 
 # Choose a language
 
-DUMMY         = -1
-FOXDOT        = 0
-TIDAL         = 1
-TIDALSTACK    = 2
+DUMMY = -1
+FOXDOT = 0
+TIDAL = 1
+TIDALSTACK = 2
 SUPERCOLLIDER = 3
-SONICPI       = 4
+SONICPI = 4
 
-langnames = { "foxdot"           : FOXDOT,
-              "tidalcycles"      : TIDAL,
-              "tidalcyclesstack" : TIDALSTACK,
-              "supercollider"    : SUPERCOLLIDER,
-              "sonic-pi"         : SONICPI,
-              "none"             : DUMMY }
+langnames = {"foxdot": FOXDOT,
+             "tidalcycles": TIDAL,
+             "tidalcyclesstack": TIDALSTACK,
+             "supercollider": SUPERCOLLIDER,
+             "sonic-pi": SONICPI,
+             "none": DUMMY}
 
-langtitles = { "foxdot"           : "FoxDot",
-               "tidalcycles"      : "TidalCycles",
-               "supercollider"    : "SuperCollider",
-               "tidalcyclesstack" : "TidalCycles (stack)",
-               "sonic-pi"         : "Sonic-Pi",
-               "none"             : "No Interpreter" }
+langtitles = {"foxdot": "FoxDot",
+              "tidalcycles": "TidalCycles",
+              "supercollider": "SuperCollider",
+              "tidalcyclesstack": "TidalCycles (stack)",
+              "sonic-pi": "Sonic-Pi",
+              "none": "No Interpreter"}
+
 
 def getInterpreter(path):
     """ Returns the integer representing the specified interpreter unless
@@ -133,6 +137,7 @@ def getInterpreter(path):
     return langnames.get(path.lower(), path)
 
 # Sorting colours
+
 
 global COLOUR_INFO_FILE
 global COLOURS
@@ -146,20 +151,21 @@ if not os.path.exists(CONF_DIR):
 
 COLOUR_INFO_FILE = os.path.join(CONF_DIR, "colours.txt")
 
-COLOURS = { "Background" : "#272822",
-            "Console"    : "#151613",
-            "Stats"      : "#151613",
-            "Alpha"      : 0.8,
-            "Peers"      : [ "#66D9EF",
-                             "#F92672",
-                             "#ffd549",
-                             "#A6E22E",
-                             "#ff108f",
-                             "#fffd56",
-                             "#0589e7",
-                             "#c345f5",
-                             "#ff411f",
-                             "#05cc50" ] }
+COLOURS = {"Background": "#000000",
+           "Console": "#000000",
+           "Stats": "#000000",
+           "Alpha": 0.2,
+           "Peers": ["#66D9EF",
+                     "#F92672",
+                     "#ffd549",
+                     "#A6E22E",
+                     "#ff108f",
+                     "#fffd56",
+                     "#0589e7",
+                     "#c345f5",
+                     "#ff411f",
+                     "#05cc50"]}
+
 
 def LoadColours():
     """ Reads colour information from COLOUR_INFO and updates
@@ -182,16 +188,20 @@ def LoadColours():
             COLOURS[key] = colour
     return
 
+
 LoadColours()
 
+
 def exe_exists(exe):
-    if SYSTEM == WINDOWS: 
+    if SYSTEM == WINDOWS:
         exe = "{}.exe".format(exe)
     return any(
-        os.access(os.path.join(path, exe), os.X_OK) 
+        os.access(os.path.join(path, exe), os.X_OK)
         for path in os.environ["PATH"].split(os.pathsep)
     )
 
+
 class ExecutableNotFoundError(Exception):
     def __init__(self, executable):
-        Exception.__init__(self, "{}: '{}' is not a valid executable".format(self.__class__.__name__, executable))
+        Exception.__init__(self, "{}: '{}' is not a valid executable".format(
+            self.__class__.__name__, executable))
