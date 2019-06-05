@@ -28,12 +28,13 @@ import time
 import sys
 import json
 
+
 class ThreadSafeText(Text, OTClient):
     is_refreshing = False
     def __init__(self, root, **options):
-        
+
         # Inheret  from Tk.Text and OT client
-        
+
         Text.__init__(self, root.root, **options)
         OTClient.__init__(self, revision=0)
 
@@ -74,13 +75,13 @@ class ThreadSafeText(Text, OTClient):
         self.add_handle(MSG_CONSTRAINT,         self.handle_text_constraint)
 
         # Information about other connected users
-        self.peers      = self.root.client.peers
-        self.peer_tags  = []
+        self.peers = self.root.client.peers
+        self.peer_tags = []
 
-        self.marker     = None
+        self.marker = None
         self.local_peer = None
-        
-        self.scroll_view  = None
+
+        self.scroll_view = None
         self.scroll_index = None
 
         self.configure_font()
@@ -90,10 +91,10 @@ class ThreadSafeText(Text, OTClient):
 
         # Brackets
 
-        left_b  = list("([{")
+        left_b = list("([{")
         right_b = list(")]}")
 
-        self.left_brackets  = dict(zip(left_b, right_b))
+        self.left_brackets = dict(zip(left_b, right_b))
         self.right_brackets = dict(zip(right_b, left_b))
 
         # Set formatting tags
@@ -127,7 +128,7 @@ class ThreadSafeText(Text, OTClient):
 
             if len(self.read()) != len(self.peer_tag_doc):
 
-                print("{} {}".format( len(self.read()) , len(self.peer_tag_doc)))
+                print("{} {}".format(len(self.read()), len(self.peer_tag_doc)))
                 print("Document length mismatch, please restart the Troop server.")
                 return
 
@@ -230,14 +231,16 @@ class ThreadSafeText(Text, OTClient):
         """ Transforms operations in the undo_stack so their locations are adjusted after other
             operations are applied to the text """
         if len(self.undo_stack):
-            self.undo_stack = [self.transform(action, operation)[0] for action in self.undo_stack if len(action.ops)]
+            self.undo_stack = [self.transform(action, operation)[
+                0] for action in self.undo_stack if len(action.ops)]
         return
 
     def add_to_undo_stacks(self, operation, document, undo=False, redo=False):
         """ Adds the inverse of an operation to the undo stack """
         # Keep track of operations for use in undo
         if not undo:
-            self.undo_stack = self.undo_stack[-self.max_undo_size:] + [operation.invert(document)]
+            self.undo_stack = self.undo_stack[-self.max_undo_size:] + [
+                operation.invert(document)]
             if not redo:
                 self.redo_stack = []
         else:
@@ -328,11 +331,13 @@ class ThreadSafeText(Text, OTClient):
 
                     # If the operation is delete/insert, change the indexes of peers that are based after this one
 
-                    self.adjust_peer_locations(self.active_peer, message["operation"])
+                    self.adjust_peer_locations(
+                        self.active_peer, message["operation"])
 
                     # Move the peer marker
 
-                    self.active_peer.move(get_operation_index(message["operation"]))
+                    self.active_peer.move(
+                        get_operation_index(message["operation"]))
 
                 else:
 
@@ -344,12 +349,19 @@ class ThreadSafeText(Text, OTClient):
 
                 self.reset_view()
 
+                if os.getenv('RO') == '1':
+                    self.follow_peer_from(message)
+
         return
 
     def handle_set_mark(self, message):
         """ Updates a peer's location """
         peer = self.get_peer(message)
         peer.move(message["index"])
+
+        if os.getenv('RO') == '1':
+            self.follow_peer_from(message)
+
         return
 
     def handle_select(self, message):
@@ -375,7 +387,8 @@ class ThreadSafeText(Text, OTClient):
 
         peer = self.get_peer(message)
 
-        self.root.lang.evaluate(message["string"], name=str(peer), colour=peer.bg)
+        self.root.lang.evaluate(
+            message["string"], name=str(peer), colour=peer.bg)
 
         return
 
@@ -389,7 +402,7 @@ class ThreadSafeText(Text, OTClient):
     def handle_set_all(self, message):
         ''' Sets the contents of the text box and updates the location of peer markers '''
 
-        self.reset() # inherited from OTClient
+        self.reset()  # inherited from OTClient
 
         self.document = message["document"]
 
@@ -417,7 +430,7 @@ class ThreadSafeText(Text, OTClient):
         return self.root.freeze_kill(message['string'])
 
     def handle_text_constraint(self, message):
-        """ A new text constrait is set """ # TODO: implement the constraints again
+        """ A new text constrait is set """  # TODO: implement the constraints again
         constraint_id = message["constraint_id"]
         dictator_peer = message["src_id"]
 
@@ -427,12 +440,12 @@ class ThreadSafeText(Text, OTClient):
 
             if not (constraint_id == 0 and self.constraint.rule is None):
 
-                print("New rule received! Setting mode to '{}'".format(str(self.constraint.get_name(constraint_id)).title()))
-            
-            self.constraint.set_constraint(constraint_id, dictator_peer)
-        
-        return
+                print("New rule received! Setting mode to '{}'".format(
+                    str(self.constraint.get_name(constraint_id)).title()))
 
+            self.constraint.set_constraint(constraint_id, dictator_peer)
+
+        return
 
     # Reading and writing to the text box
     # ===================================
@@ -483,7 +496,7 @@ class ThreadSafeText(Text, OTClient):
 
         for other in self.peers.values():
 
-            if other !=  peer:
+            if other != peer:
 
                 other_index = other.get_index_num()
 
@@ -495,7 +508,8 @@ class ThreadSafeText(Text, OTClient):
 
                     if peer.has_selection():
 
-                        other.select_remove(peer.select_start(), peer.select_end())
+                        other.select_remove(
+                            peer.select_start(), peer.select_end())
 
                     # Shift a selected area
 
@@ -503,8 +517,8 @@ class ThreadSafeText(Text, OTClient):
 
                 # If the other peer is *in* this peer's selection, move it
 
-                if peer.has_selection() and peer.select_contains( other_index ):
-        
+                if peer.has_selection() and peer.select_contains(other_index):
+
                     other.move(peer.select_start())
 
                 # Adjust the index if it comes after the operating peer index
@@ -596,7 +610,8 @@ class ThreadSafeText(Text, OTClient):
 
         for start, end in get_peer_locs(get_peer_char(p_id), self.peer_tag_doc):
 
-            self.tag_add(text_tag, self.number_index_to_tcl(start), self.number_index_to_tcl(end))
+            self.tag_add(text_tag, self.number_index_to_tcl(
+                start), self.number_index_to_tcl(end))
 
         return
 
@@ -633,7 +648,8 @@ class ThreadSafeText(Text, OTClient):
 
                 except Exception as e:
 
-                    print("Exception occurred in message {!r}: {!r} {!r}".format(self.handles[msg.type].__name__, type(e), e))
+                    print("Exception occurred in message {!r}: {!r} {!r}".format(
+                        self.handles[msg.type].__name__, type(e), e))
                     raise(e)
 
                 # Update any other idle tasks
@@ -653,10 +669,10 @@ class ThreadSafeText(Text, OTClient):
         """ Clears the text box and loads the current document state, called after an operation """
 
         self.is_refreshing = True
-        
+
         # Store the current "view" to re-apply later
         self.store_view()
-        
+
         # Remove all the text and insert new text
         self.clear()
         self.insert("1.0", self.document)
@@ -666,25 +682,25 @@ class ThreadSafeText(Text, OTClient):
         self.apply_language_formatting()
 
         self.is_refreshing = False
-        
+
         return
 
     def refresh_peer_labels(self):
         ''' Updates the locations of the peers to their marks. Called from line_numbers on repeat '''
-        
+
         for peer_id, peer in self.peers.items():
-             
-             peer.redraw()
-        
+
+            peer.redraw()
+
         return
 
     # handling key events
 
     def apply_language_formatting(self):
-         """ Iterates over each line in the text and updates the correct colour / formatting """
-         for line,  _ in enumerate(self.readlines()):
-             self.colour_line(line + 1)
-         return
+        """ Iterates over each line in the text and updates the correct colour / formatting """
+        for line,  _ in enumerate(self.readlines()):
+            self.colour_line(line + 1)
+        return
 
     def colour_line(self, line):
         """ Embold keywords defined in `Interpreter.py` """
@@ -704,7 +720,7 @@ class ThreadSafeText(Text, OTClient):
             for match_start, match_end in tag_finding_func(string):
 
                 tag_start = "{}.{}".format(line, match_start)
-                tag_end   = "{}.{}".format(line, match_end)
+                tag_end = "{}.{}".format(line, match_end)
 
                 self.tag_add(tag_name, tag_start, tag_end)
 
@@ -716,7 +732,8 @@ class ThreadSafeText(Text, OTClient):
         index = self.marker.get_index_num() - 1
         assert self.read()[index] == bracket
 
-        start = self.find_starting_bracket(index - 1, self.right_brackets[bracket], bracket)
+        start = self.find_starting_bracket(
+            index - 1, self.right_brackets[bracket], bracket)
 
         if start is not None:
 
@@ -749,7 +766,7 @@ class ThreadSafeText(Text, OTClient):
 
         # If we are at the top of the screen, and the marker is less than 2/3 down the page, keep at top
 
-        top_row    = self.get_visible_row_top()
+        top_row = self.get_visible_row_top()
         marker_row = self.get_marker_row()
         bottom_row = self.get_visible_row_bottom()
 
@@ -760,25 +777,27 @@ class ThreadSafeText(Text, OTClient):
                 self.scroll_distance = self.get_num_lines() * -1
 
                 return
-    
+
         # Store the current distance between top row and marker.mark
 
         self.scroll_distance = top_row - marker_row
 
         return
 
-    def reset_view(self):
+    def reset_view(self, peer=None):
         """ Sets the view to the last position stored"""
 
         # Move to top
 
         self.yview('move', 0.0)
-        
+
+        marker_row = self.get_marker_row(peer=peer)
+
         # Scroll until the scroll-distance is the same as previous (or the end)
 
         for n in range(self.get_num_lines()):
 
-            if (self.get_visible_row_top() - self.get_marker_row()) >= self.scroll_distance:
+            if (self.get_visible_row_top() - marker_row) >= self.scroll_distance:
 
                 break
 
@@ -796,8 +815,9 @@ class ThreadSafeText(Text, OTClient):
         index = self.index("@0,{}".format(self.winfo_height()))
         return int(index.split(".")[0])
 
-    def get_marker_row(self):
-        index = self.index(self.marker.mark)
+    def get_marker_row(self, peer=None):
+        mark = peer.mark if peer else self.marker.mark
+        index = self.index(mark)
         return int(index.split(".")[0])
 
     def configure_font(self):
@@ -821,17 +841,20 @@ class ThreadSafeText(Text, OTClient):
         self.font.configure(**tkFont.nametofont("Font").configure())
         self.font_names.append("Font")
 
-        self.font_bold = tkFont.Font(family=fontfamily, size=12, weight="bold", name="BoldFont")
+        self.font_bold = tkFont.Font(
+            family=fontfamily, size=12, weight="bold", name="BoldFont")
         self.font_bold.configure(**tkFont.nametofont("BoldFont").configure())
         self.font_names.append("BoldFont")
 
-        self.font_italic = tkFont.Font(family=fontfamily, size=12, slant="italic", name="ItalicFont")
-        self.font_italic.configure(**tkFont.nametofont("ItalicFont").configure())
+        self.font_italic = tkFont.Font(
+            family=fontfamily, size=12, slant="italic", name="ItalicFont")
+        self.font_italic.configure(
+            **tkFont.nametofont("ItalicFont").configure())
         self.font_names.append("ItalicFont")
 
         self.configure(font="Font")
 
-        self.bracket_style = {'borderwidth': 2, 'relief' : 'groove'}
+        self.bracket_style = {'borderwidth': 2, 'relief': 'groove'}
         self.bracket_tag = "tag_open_brackets"
         self.tag_config(self.bracket_tag, **self.bracket_style)
 
@@ -843,14 +866,15 @@ class ThreadSafeText(Text, OTClient):
         row, col = [int(val) for val in self.index(index).split(".")]
         return sum([len(line) + 1 for line in self.read().split("\n")[:row-1]]) + col
 
-
     def number_index_to_tcl(self, number):
         """ Takes an integer number and returns the tcl index in the from 'row.col' """
         if number <= 0:
             return "1.0"
         text = self.read()
         # Count columns until a newline, then reset and add 1 to row
-        count = 0; row = 1; col = 0
+        count = 0
+        row = 1
+        col = 0
         for i in range(1, len(text)+1):
             char = text[i-1]
             if char == "\n":
@@ -883,3 +907,21 @@ class ThreadSafeText(Text, OTClient):
             return len(line_contents) - len(line_contents.lstrip(' '))
 
         return 0
+
+    def follow_peer_from(self, message):
+        peer = self.get_peer(message)
+
+        followed_peer_name = os.getenv('FOLLOW')
+
+        if followed_peer_name:
+            # If we want to follow a specific peer, check if it is active and reset view
+            followed_peer_id = next(
+                p.id for p in self.active_peers() if p.name.get() == followed_peer_name)
+            print("Following {} (id={})".format(
+                followed_peer_name, followed_peer_id))
+            if message["src_id"] == followed_peer_id:
+                self.reset_view(peer)
+        else:
+            # Follow anyone but current user
+            if message["src_id"] != self.marker.id:
+                self.reset_view(peer)
