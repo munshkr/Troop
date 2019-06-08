@@ -34,7 +34,7 @@ class Client:
         self.input = ConnectionInput(self, **kwargs)
         self.input.start()
 
-    def setup(self, host="", port="", name="", password="", lang=FOXDOT, args="", logging=False, ipv6=False):
+    def setup(self, host="", port="", name="", password="", lang=FOXDOT, args="", logging=False, ipv6=False, show_menu=True):
 
         # ConnectionInput(host, port)
         
@@ -112,7 +112,7 @@ class Client:
         # Set up a user interface
 
         title = "Troop - {}@{}:{}".format(self.name, self.send.hostname, self.send.port)
-        self.ui = Interface(self, title, self.lang, logging)
+        self.ui = Interface(self, title, self.lang, logging, show_menu=show_menu)
         self.ui.init_local_user(self.id, self.name)
 
         # Send information about this client to the server

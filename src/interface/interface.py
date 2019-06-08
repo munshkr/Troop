@@ -85,7 +85,7 @@ class DummyInterface(BasicInterface):
         self.lang.start()
 
 class Interface(BasicInterface):
-    def __init__(self, client, title, language, logging=False):
+    def __init__(self, client, title, language, logging=False, show_menu=True):
 
         # Inherit
 
@@ -190,7 +190,7 @@ class Interface(BasicInterface):
 
         # Menubar
 
-        self.menu = MenuBar(self, visible = True)
+        self.menu = MenuBar(self, visible = show_menu)
 
         # Right-click menu
 

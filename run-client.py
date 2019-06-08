@@ -50,6 +50,11 @@ parser.add_argument('-c', '--config', action='store_true',
                     help="Load connection info from 'client.cfg'")
 parser.add_argument('-l', '--log', action='store_true')
 
+parser.add_argument('--menu', dest='show_menu', action='store_true', default=True,
+                    help='Show menu bar on start')
+parser.add_argument('--no-menu', dest='show_menu', action='store_false',
+                    help='Hide menu bar on start')
+
 args = parser.parse_args()
 
 # Set up client
@@ -124,5 +129,7 @@ else:
 if args.args:
 
     options['args'] = args.args
+
+options['show_menu'] = args.show_menu
 
 myClient = Client(**options)
