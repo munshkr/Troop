@@ -85,7 +85,7 @@ class DummyInterface(BasicInterface):
         self.lang.start()
 
 class Interface(BasicInterface):
-    def __init__(self, client, title, language, logging=False, show_menu=True):
+    def __init__(self, client, title, language, logging=False):
 
         # Inherit
 
@@ -172,13 +172,13 @@ class Interface(BasicInterface):
         self.c_scroll = Scrollbar(self.root)
         self.c_scroll.grid(row=2, column=4, sticky='nsew')
 
-        self.console = Console(self.root, bg=COLOURS["Console"], fg="white", height=5, width=50, font="Font", 
+        self.console = Console(self.root, bg=COLOURS["Console"], fg="white", height=5, width=50, font="Font",
                             highlightthickness=0, yscrollcommand=self.c_scroll.set)
 
         self.console.grid(row=2, column=0, columnspan=2, stick="nsew")
 
         self.c_scroll.config(command=self.console.yview)
-        
+
         sys.stdout = self.console # routes stdout to print to console
 
         self.console_drag = ConsoleDragbar(self, bg="white", width=2)
@@ -190,7 +190,7 @@ class Interface(BasicInterface):
 
         # Menubar
 
-        self.menu = MenuBar(self, visible = show_menu)
+        self.menu = MenuBar(self, visible = True)
 
         # Right-click menu
 
@@ -273,6 +273,7 @@ class Interface(BasicInterface):
         self.text.bind("<{}-minus>".format(CtrlKey),  self.decrease_font_size)
 
         self.text.bind("<{}-s>".format(CtrlKey),  self.menu.save_file)
+        self.text.bind("<{}-i>".format(CtrlKey),  self.menu.external_command)
         self.text.bind("<{}-o>".format(CtrlKey),  self.menu.open_file)
         self.text.bind("<{}-n>".format(CtrlKey),  self.menu.new_file)
 
@@ -750,7 +751,7 @@ class Interface(BasicInterface):
         return self.see_peer(self.text.marker)
 
     def see_peer(self, peer):
-        """ If the peer label (the peer's current tcl index +- 2 lines worth) is not 
+        """ If the peer label (the peer's current tcl index +- 2 lines worth) is not
             visible, make sure we can see it. """
         index        = peer.get_tcl_index()
         top_index    = "{}-2lines".format(index)
@@ -968,7 +969,7 @@ class Interface(BasicInterface):
         else:
             i = len(text)
         return i
-        
+
 
     # Selection handling
     # ==================
@@ -1012,7 +1013,7 @@ class Interface(BasicInterface):
     def select_right(self, event):
         """ Finds the currently selected portion of text of the local peer
             and the row/col to update it to and calls self.UpdateSelect  """
-            
+
         self.update_select( *self.get_movement_index(self.move_marker_right) )
 
         return "break"
@@ -1161,7 +1162,7 @@ class Interface(BasicInterface):
 
         # If we click somewhere, remove the closed brackets tag
 
-        self.remove_highlighted_brackets() 
+        self.remove_highlighted_brackets()
 
         # Get location and process
 

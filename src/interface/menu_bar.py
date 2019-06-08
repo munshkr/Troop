@@ -8,8 +8,10 @@ except ImportError:
     from tkinter import Menu, DISABLED, NORMAL, StringVar
     from tkinter import filedialog as tkFileDialog
     from tkinter import messagebox as tkMessageBox
-    
+
 from functools import partial
+
+from pathlib import Path
 
 from ..config import *
 from ..message import *
@@ -18,6 +20,7 @@ class MenuBar(Menu):
     def __init__(self, master, visible=True):
 
         self.root = master
+        self.filename = None
 
         Menu.__init__(self, master.root)
 
@@ -30,6 +33,7 @@ class MenuBar(Menu):
         filemenu.add_separator()
         filemenu.add_command(label="Start logging performance", command=lambda: "break")
         filemenu.add_command(label="Import logged performance", command=self.root.ImportLog)
+        filemenu.add_command(label="External command",command= self.external_command, accelerator="Ctrl+I")
         self.add_cascade(label="File", menu=filemenu)
 
         # Edit menu
@@ -66,7 +70,7 @@ class MenuBar(Menu):
             constmenu.add_checkbutton(label=str(name).title(),
                                       command  = partial(self.root.set_constraint, i),
                                       variable = self.root.text.constraint.using[i])
-            
+
         codemenu.add_cascade(label="Set Constraint", menu=constmenu)
 
         codemenu.add_separator()
@@ -80,9 +84,9 @@ class MenuBar(Menu):
             langmenu.add_checkbutton(label=langtitles[name],
                                      command  = partial(self.root.set_interpreter, interpreter),
                                      variable = self.root.interpreters[name])
-            
+
         codemenu.add_cascade(label="Choose language", menu=langmenu)
-        
+
         self.add_cascade(label="Code", menu=codemenu)
 
         # Help
@@ -94,9 +98,9 @@ class MenuBar(Menu):
         # Add to root
 
         self.visible = visible
-        
+
         if self.visible:
-            
+
             master.root.config(menu=self)
 
     def toggle(self, *args, **kwargs):
@@ -110,10 +114,25 @@ class MenuBar(Menu):
         all_files = ("All files", "*.*")
         fn = tkFileDialog.asksaveasfilename(title="Save as...", filetypes=(lang_files, all_files), defaultextension=lang_files[1])
         if len(fn):
+            self.filename = fn
             with open(fn, "w") as f:
                 f.write(self.root.text.read())
             print("Saved: {}".format(fn))
         return
+
+    def external_command(self, event=None):
+        """ Opens a save file dialog """
+        if self.filename is None:
+            self.save_file()
+        else:
+            with open(self.filename, "w") as f:
+                f.write(self.root.text.read())
+            print("Saved: {}".format(self.filename))
+
+        os.system("pwd")
+        os.system("./external_command {}".format(self.filename))
+        return
+
 
     def new_file(self, event=None):
         """ Asks if the user wants to clear the screen and does so if yes """
@@ -124,7 +143,7 @@ class MenuBar(Menu):
         lang_files = ("{} files".format(repr(self.root.lang)), self.root.lang.filetype )
         all_files = ("All files", "*.*")
         fn = tkFileDialog.askopenfilename(title="Open file", filetypes=(lang_files, all_files))
-        
+
         if len(fn):
 
             with open(fn) as f:
@@ -139,7 +158,7 @@ class PopupMenu(Menu):
     def __init__(self, master):
         self.root = master
         Menu.__init__(self, master.root, tearoff=0, postcommand=self.update)
-        self.add_command(label="Undo", command=self.root.undo, accelerator="Ctrl+Z") 
+        self.add_command(label="Undo", command=self.root.undo, accelerator="Ctrl+Z")
         self.add_command(label="Redo", command=self.root.redo, accelerator="Ctrl+Y")
         self.add_separator()
         self.add_command(label="Copy", command=self.root.copy, accelerator="Ctrl+C")
@@ -179,7 +198,7 @@ class ConsolePopupMenu(PopupMenu):
         self.root = master # console widget
         disable = lambda *e: None
         Menu.__init__(self, master.root, tearoff=0, postcommand=self.update)
-        self.add_command(label="Undo", command=disable, accelerator="Ctrl+Z", state=DISABLED) 
+        self.add_command(label="Undo", command=disable, accelerator="Ctrl+Z", state=DISABLED)
         self.add_command(label="Redo", command=disable, accelerator="Ctrl+Y", state=DISABLED)
         self.add_separator()
         self.add_command(label="Copy", command=self.root.copy, accelerator="Ctrl+C")
