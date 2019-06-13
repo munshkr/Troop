@@ -28,6 +28,11 @@ import time
 import sys
 import json
 
+import string
+
+# Get the difference of all ASCII characters from the set of printable characters
+nonprintable_chars = set([chr(i) for i in range(128)]).difference(string.printable)
+
 
 class ThreadSafeText(Text, OTClient):
     is_refreshing = False
@@ -382,6 +387,7 @@ class ThreadSafeText(Text, OTClient):
         peer = self.get_peer(message)
 
         string = peer.highlight(message["start"], message["end"])
+        string = self.clean_string(string)
 
         self.root.lang.evaluate(string, name=str(peer), colour=peer.bg)
 
@@ -391,11 +397,15 @@ class ThreadSafeText(Text, OTClient):
         """ Evaluates a string as code """
 
         peer = self.get_peer(message)
+        string = self.clean_string(message['string'])
 
         self.root.lang.evaluate(
-            message["string"], name=str(peer), colour=peer.bg)
+            string, name=str(peer), colour=peer.bg)
 
         return
+
+    def clean_string(self, string):
+        return string.translate({ ord(char): None for char in nonprintable_chars })
 
     def handle_remove(self, message):
         """ Removes a Peer from the session based on the contents of message """
@@ -930,3 +940,5 @@ class ThreadSafeText(Text, OTClient):
             # Follow anyone but current user
             if message["src_id"] != self.marker.id:
                 self.reset_view(peer)
+
+
